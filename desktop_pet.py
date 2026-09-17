@@ -1,7 +1,13 @@
 """
-Mascota de escritorio (desktop pet) para Windows. Version 3.
+Mascota de escritorio (desktop pet) para Windows. Version 4.
 
-Novedades respecto a la v2:
+Novedades respecto a la v3:
+    - Actividades de canto: camina hasta el borde de la ventana sobre la que
+      esta, se sienta con las piernas colgando y desde ahi pesca, con sedal,
+      flotador y algun pez que pica. El lienzo es mas alto por debajo de los
+      pies para que quepa el sedal.
+
+Novedades de la v3 respecto a la v2:
     - Trajes tradicionales (Espania, Mexico, Japon, China, Corea, India,
       Escocia, Rusia, Peru, Marruecos, Baviera y Egipto). Se eligen desde el
       menu de clic derecho y la mascota se los pone mientras hace cualquier
@@ -67,12 +73,15 @@ PALETTE = {
     "I": QColor("#E2739B"),   # rosa
     "Q": QColor("#7E1B1B"),   # granate
     "J": QColor("#20242B"),   # negro tela
+    "Z": QColor("#414A63"),   # azul pizarra (telas oscuras visibles)
 }
 
-# Lienzo: la ventana es mas ancha que la mascota para que quepan los objetos.
-CANVAS_W, CANVAS_H = 21, 12
+# Lienzo: la ventana es mas ancha que la mascota para que quepan los objetos, y
+# mas alta por debajo de los pies para que quepa el sedal de la caña de pescar.
+CANVAS_W, CANVAS_H = 21, 18
 PET_COL, PET_ROW = 5, 3          # esquina de la mascota dentro del lienzo
 SPRITE_W, SPRITE_H = 11, 9
+PET_BOTTOM = PET_ROW + SPRITE_H  # fila del lienzo donde estan los pies
 
 BODY = [
     "..B.....B..",
@@ -114,6 +123,8 @@ LEGS = {
     "air": "B.B.....B.B",
     "drag": "B.B..B..B.B",
     "sit": "BBB.....BBB",
+    "dangle_a": ".....BB.BB.",   # sentada en el canto, piernas hacia fuera
+    "dangle_b": "....BB.BB..",
     "none": "...........",
 }
 
@@ -168,6 +179,21 @@ PROPS = {
     "dumbbell": [
         (["K...K", "KKKKK", "K...K"], 8, 1),
         (["K...K", "KKKKK", "K...K"], 8, 0),
+    ],
+    # cols 14-18 del lienzo: caña en diagonal, sedal recto y flotador al final
+    "fishing": [
+        (["....N", "...NK", "..N.K", ".N..K", "N...K",
+          "....K", "....K", "....K", "....K", "....K", "....K",
+          "....R"], 14, 4),
+        (["....N", "...NK", "..N.K", ".N..K", "N...K",
+          "....K", "....K", "....K", "....K", "....K",
+          "....R"], 14, 4),
+        (["....N", "...NK", "..N.K", ".N..K", "N...K",
+          "....K", "....K", "....K",
+          "...OO", "..OOO"], 14, 4),
+        (["....N", "...NK", "..N.K", ".N..K", "N...K",
+          "....K",
+          "...OO", "..OOO"], 14, 4),
     ],
     "pizza": [
         (["..R..", ".RRR.", "RRRRR", "PPPPP"], 16, 8),
@@ -431,7 +457,357 @@ COSTUMES = {
               ".Y."], 11, 3),                     # cayado
         ],
     },
+    # ---- personajes de anime y dibujos (arquetipos originales) ------------- #
+    "ninja": {
+        "label": "Ninja shinobi",
+        "parts": [
+            ([".ZZZKKKZZZ."], 0, 2),              # banda con placa metalica
+            (["ZZZZZZZZZZZ",
+              "ZZZZZZZZZZZ",
+              "RRRRRRRRRRR"], 0, 5),              # traje y faja roja
+        ],
+        "accessory": [
+            (["..K..",
+              ".KKK.",
+              "KK.KK",
+              ".KKK.",
+              "..K.."], 11, 3),                   # shuriken
+        ],
+    },
+    "samurai": {
+        "label": "Samurai",
+        "parts": [
+            ([".Y.......Y.",
+              ".YZZZZZZZY.",
+              ".ZZZYYYZZZ.",
+              "ZZZZZZZZZZZ"], 0, -2),             # kabuto con cuernos
+            (["QQQQQQQQQQQ",
+              "QQYQQQQQYQQ",
+              "ZZZZZZZZZZZ"], 0, 5),              # armadura
+        ],
+        "accessory": [
+            ([".K.",
+              ".K.",
+              ".K.",
+              "YKY",
+              ".N.",
+              ".N."], 11, 2),                     # katana
+        ],
+    },
+    "magica": {
+        "label": "Chica magica",
+        "parts": [
+            (["..Y..",
+              ".YYY.",
+              "..Y.."], 3, -2),                   # estrella flotante
+            ([".YYYYYYYYY."], 0, 2),              # tiara
+            (["IIIIIRIIIII",
+              "IIIIRRRIIII",
+              "WWWWWWWWWWW"], 0, 5),              # vestido con lazo
+        ],
+        "accessory": [
+            ([".Y.",
+              "YYY",
+              ".Y.",
+              ".I.",
+              ".I."], 11, 3),                     # varita
+        ],
+    },
+    "mecha": {
+        "label": "Piloto de mecha",
+        "parts": [
+            ([".....R.....",
+              "..KKKKKKK..",
+              ".KKKKKKKKK.",
+              "KKKKKKKKKKK",
+              ".KAAAAAAAK."], 0, -2),             # casco con visor
+            (["WWWWWWWWWWW",
+              "AAAAALAAAAA",
+              "AAAAAAAAAAA"], 0, 5),              # traje de vuelo
+        ],
+        "accessory": [
+            ([".R.",
+              "KLK",
+              "KKK",
+              "K.K"], 11, 4),                     # dron de apoyo
+        ],
+    },
+    "colegiala": {
+        "label": "Uniforme escolar",
+        "parts": [
+            (["Y"], 3, 2),                        # pasador de pelo
+            (["AAWWWWWWWAA",
+              "AAAAARAAAAA",
+              "AAAAAAAAAAA"], 0, 5),              # cuello marinero y falda
+        ],
+        "accessory": [
+            (["RRRR",
+              "RYYR",
+              "RRRR",
+              ".RR."], 11, 4),                    # mochila
+        ],
+    },
+    "kaiju": {
+        "label": "Kaiju",
+        "parts": [
+            (["..G.G.G.G..",
+              ".GGGGGGGGG.",
+              "GGGGGGGGGGG"], 0, -1),             # cresta de puas
+            (["GGGGGGGGGGG",
+              "GLGLGLGLGLG",
+              "GGGGGGGGGGG"], 0, 5),              # escamas
+        ],
+        "accessory": [
+            (["KKK",
+              "KYK",
+              "KKK",
+              "KYK"], 11, 4),                     # edificio
+        ],
+    },
+    "heroe": {
+        "label": "Superheroe",
+        "parts": [
+            ([".AAAAAAAAA.",
+              ".A.......A."], 0, 2),              # antifaz
+            (["RAAAAYAAAAR",
+              "RAAAYYYAAAR",
+              "RAAAAAAAAAR"], 0, 5),              # traje y capa
+        ],
+        "accessory": [
+            (["..Y",
+              ".YY",
+              ".Y.",
+              "YY.",
+              ".Y."], 11, 3),                     # rayo
+        ],
+    },
+    "robot": {
+        "label": "Robot de hojalata",
+        "parts": [
+            ([".....R.....",
+              ".....K.....",
+              "..KKKKKKK..",
+              "KKKKKKKKKKK",
+              ".KKKKKKKKK."], 0, -2),             # antena y casco
+            (["KKKKKKKKKKK",
+              "KKKKLRLKKKK",
+              "KKKKKKKKKKK"], 0, 5),              # chasis con botones
+        ],
+        "accessory": [
+            (["K.K",
+              "KKK",
+              ".K.",
+              ".K."], 11, 4),                     # llave inglesa
+        ],
+    },
+    "mago": {
+        "label": "Mago",
+        "parts": [
+            ([".....A.....",
+              "....AAA....",
+              "...AAYAA...",
+              "AAAAAAAAAAA"], 0, -2),             # sombrero de punta
+            (["AAAAAAAAAAA",
+              "AAYAAAAAYAA",
+              "AAAAAYAAAAA"], 0, 5),              # tunica de estrellas
+        ],
+        "accessory": [
+            ([".L.",
+              "LLL",
+              ".L.",
+              ".N.",
+              ".N.",
+              ".N."], 11, 2),                     # baston con orbe
+        ],
+    },
+    "pirata": {
+        "label": "Pirata",
+        "parts": [
+            (["RRRRWRWRRRR",
+              ".RRRRRRRRR."], 0, 1),              # paniuelo con calavera
+            (["WWWWWWWWWWW",
+              "AAAAAAAAAAA",
+              "QQQQQQQQQQQ"], 0, 5),              # camisa a rayas y faja
+        ],
+        "accessory": [
+            ([".GG",
+              "GGY",
+              ".RR",
+              ".R."], 11, 4),                     # loro
+        ],
+    },
+    "gi": {
+        "label": "Guerrero de gi",
+        "parts": [
+            ([".RRRRRRRRR."], 0, 2),              # cinta de la frente
+            (["WWZWWWWWZWW",
+              "WWWZWWWZWWW",
+              "ZZZZZZZZZZZ"], 0, 5),              # gi y cinturon negro
+        ],
+        "accessory": [
+            ([".LL.",
+              "LWWL",
+              "LWWL",
+              ".LL."], 11, 4),                    # esfera de energia
+        ],
+    },
+    "espadachin": {
+        "label": "Espadachin errante",
+        "parts": [
+            ([".....TTT.....",
+              "...TTTTTTT...",
+              ".TTTTTTTTTTT.",
+              "TTTTTTTTTTTTT"], -1, -1),          # kasa de paja
+            (["ZZZWZZZWZZZ",
+              "ZZZZWZWZZZZ",
+              "NNNNNNNNNNN"], 0, 5),              # kimono de viaje
+        ],
+        "accessory": [
+            ([".Y.",
+              ".N.",
+              ".Z.",
+              ".Z.",
+              ".Z.",
+              ".Z."], 11, 2),                     # espada envainada
+        ],
+    },
+    "cazador": {
+        "label": "Cazador de espiritus",
+        "parts": [
+            ([".WRWRWRWRW."], 0, 2),              # cinta de talismanes
+            (["WWZZZZZZZWW",
+              "ZZZZZZZZZZZ",
+              "WWWWWWWWWWW"], 0, 5),              # haori y hakama
+        ],
+        "accessory": [
+            (["WWW",
+              "WRW",
+              "WRW",
+              "WRW",
+              "WWW"], 11, 3),                     # ofuda
+        ],
+    },
+    "espacial": {
+        "label": "Piloto de caza espacial",
+        "parts": [
+            ([".....R.....",
+              "..WWWWWWW..",
+              ".WWWWWWWWW.",
+              "WWWWWWWWWWW",
+              ".WYYYYYYYW."], 0, -2),             # casco con visor dorado
+            (["OOOOOWOOOOO",
+              "OOWWWWWWWOO",
+              "OOOOOOOOOOO"], 0, 5),              # mono de vuelo con arnes
+        ],
+        "accessory": [
+            ([".W.",
+              ".W.",
+              "WWW",
+              "WRW",
+              "R.R"], 11, 3),                     # nave de apoyo
+        ],
+    },
+    "idol": {
+        "label": "Idol",
+        "parts": [
+            (["K.........K",
+              ".KKKKKKKKK."], 0, 1),              # auriculares
+            (["WWAAAAAAAWW",
+              "AAAAAYAAAAA",
+              "WWWWWWWWWWW"], 0, 5),              # vestido de escenario
+        ],
+        "accessory": [
+            ([".K.",
+              "KKK",
+              ".N.",
+              ".N.",
+              ".N."], 11, 3),                     # microfono
+        ],
+    },
+    "ramen": {
+        "label": "Cocinero de ramen",
+        "parts": [
+            (["WWWWWWWWWWW",
+              ".WWWWWWWWW."], 0, 1),              # paniuelo tenugui
+            (["AAAAAAAAAAA",
+              "WWWWWAWWWWW",
+              "WWWWWWWWWWW"], 0, 5),              # happi y delantal
+        ],
+        "accessory": [
+            (["..M..",
+              "ORORO",
+              "WWWWW",
+              ".WWW."], 11, 4),                   # bol de ramen
+        ],
+    },
+    "neko": {
+        "label": "Chica gato",
+        "parts": [
+            (["..W.....W..",
+              ".WIW...WIW.",
+              "WWWWW.WWWWW",
+              ".WWW...WWW."], 0, -2),             # orejas de gato
+            (["RRRRRYRRRRR",
+              "ZZZZZZZZZZZ",
+              "WWWWWWWWWWW"], 0, 5),              # collar con cascabel
+        ],
+        "accessory": [
+            ([".II.",
+              "IWII",
+              "IIWI",
+              ".II."], 11, 4),                    # ovillo de lana
+        ],
+    },
+    "onmyoji": {
+        "label": "Onmyoji",
+        "parts": [
+            (["....ZZZ....",
+              "...ZZZZZ...",
+              "..ZZZZZZZ..",
+              ".ZZZZZZZZZ."], 0, -2),             # gorro eboshi
+            (["WWWWWWWWWWW",
+              "WWRWWWWWRWW",
+              "AAAAAAAAAAA"], 0, 5),              # kariginu y hakama
+        ],
+        "accessory": [
+            (["W.W",
+              "WRW",
+              "WWW",
+              ".N."], 11, 3),                     # abanico ritual
+        ],
+    },
+    "skater": {
+        "label": "Skater",
+        "parts": [
+            (["...ZZZZZ...",
+              "..ZZZZZZZ..",
+              "..ZZZZZZZ.."], 0, -1),             # gorra
+            (["ZZZ"], -1, 1),                     # visera hacia atras
+            (["OOOOOOOOOOO",
+              "OOOOWOWOOOO",
+              "ZZZZZZZZZZZ"], 0, 5),              # sudadera y vaqueros
+        ],
+        "accessory": [
+            ([".TT.",
+              ".TT.",
+              "WTTW",
+              ".TT.",
+              "WTTW"], 11, 3),                    # monopatin
+        ],
+    },
 }
+
+# Los dos grupos en que se parte el menu de trajes. Toda clave de COSTUMES tiene
+# que aparecer aqui una sola vez.
+COSTUME_GROUPS = [
+    ("Paises", ["espana", "mexico", "japon", "china", "corea", "india",
+                "escocia", "rusia", "peru", "bolivia", "marruecos",
+                "baviera", "egipto"]),
+    ("Personajes", ["ninja", "samurai", "espadachin", "gi", "cazador",
+                    "onmyoji", "magica", "neko", "idol", "colegiala",
+                    "ramen", "mecha", "espacial", "kaiju", "heroe",
+                    "robot", "mago", "pirata", "skater"]),
+]
 
 # label  : nombre en el menu
 # prop   : objeto de PROPS, o None
@@ -465,6 +841,12 @@ ACTIVITIES = {
                   legs="idle", speed=18, overlay=None, move=0.0),
     "pizza": dict(label="Comer pizza", prop="pizza", body="hold",
                   legs="idle", speed=30, overlay=None, move=0.0),
+    "pescar": dict(label="Pescar desde el borde", prop="fishing", body="hold",
+                   legs="dangle", speed=30, overlay=None, move=0.0,
+                   ticks=(900, 1800), edge=True),
+    "colgar": dict(label="Sentarse en el borde", prop=None, body="normal",
+                   legs="dangle", speed=20, overlay=None, move=0.0,
+                   ticks=(500, 1200), edge=True),
     "bailar": dict(label="Bailar", prop=None, body="normal",
                    legs="walk", speed=10, overlay="note", move=0.0),
     "siesta": dict(label="Echarse una siesta", prop=None, body="blink",
@@ -485,6 +867,7 @@ TICK_MS = 16
 SCAN_MS = 600
 ACTIVITY_CHANCE = 0.45
 TRAVEL_CHANCE = 0.12
+EDGE_MARGIN = 6.0         # px que deja entre el centro y el canto
 COSTUME_CHANCE = 0.07     # probabilidad de cambiarse de traje al quedarse quieta
 
 # --------------------------------------------------------------------------- #
@@ -608,7 +991,9 @@ class Pet(QWidget):
         self.setCursor(Qt.OpenHandCursor)
 
         self.hwnd = int(self.winId())
-        self.state = "fall"              # idle | walk | act | travel | fall | drag
+        self.state = "fall"    # idle | walk | act | edge | travel | fall | drag
+        self.pending_activity = None     # actividad que hara al llegar al canto
+        self.edge_target = None          # x del canto al que se dirige
         self.activity = None
         self.travel_target = None
         self.facing = 1
@@ -652,7 +1037,7 @@ class Pet(QWidget):
 
     @property
     def feet(self) -> float:
-        return self.y + CANVAS_H * SCALE
+        return self.y + PET_BOTTOM * SCALE
 
     @property
     def center_x(self) -> float:
@@ -722,6 +1107,8 @@ class Pet(QWidget):
             self.do_walk()
         elif self.state == "travel":
             self.do_travel()
+        elif self.state == "edge":
+            self.do_edge()
         elif self.state == "act":
             self.do_act()
         else:
@@ -763,7 +1150,7 @@ class Pet(QWidget):
             self.rescue()
 
     def land(self, feet_y: float):
-        self.y = feet_y - CANVAS_H * SCALE
+        self.y = feet_y - PET_BOTTOM * SCALE
         self.vx = self.vy = 0.0
         self.fall_ticks = 0
         self.state = "idle"
@@ -819,6 +1206,43 @@ class Pet(QWidget):
             self.state = "fall"            # se ha salido de un borde: cae
             self.vx = direction * 1.3
             self.vy = 0.0
+
+    def platform_under(self, tolerance: float = 5.0):
+        """Ventana sobre la que esta de pie: (x1, x2, y). None si es el suelo."""
+        cx, feet = self.center_x, self.feet
+        for x1, x2, y in self.platforms:
+            if x1 <= cx <= x2 and abs(feet - y) <= tolerance:
+                return (x1, x2, y)
+        return None
+
+    def do_edge(self):
+        """Camina hasta el canto de su ventana y alli empieza la actividad."""
+        config = ACTIVITIES.get(self.pending_activity)
+        if config is None:
+            self.state = "idle"
+            self.pending_activity = self.edge_target = None
+            return
+
+        plataforma = self.platform_under()
+        self.state_timer -= 1
+        if plataforma is None or self.state_timer <= 0:
+            # sin canto a la vista, o lleva demasiado intentandolo
+            self.begin_activity(self.pending_activity, config)
+            return
+
+        x1, x2, _y = plataforma
+        derecha = self.edge_target >= (x1 + x2) / 2
+        destino = (x2 - EDGE_MARGIN) if derecha else (x1 + EDGE_MARGIN)
+        dx = destino - self.center_x
+        if abs(dx) <= WALK_SPEED:
+            self.facing = 1 if derecha else -1     # mira hacia el vacio
+            self.begin_activity(self.pending_activity, config)
+            return
+
+        self.facing = 1 if dx > 0 else -1
+        self.step(self.facing)
+        if self.state != "edge":                   # se ha caido por el camino
+            self.pending_activity = self.edge_target = None
 
     def platforms_under(self, cx: float) -> bool:
         return any(x1 <= cx <= x2 and y >= self.feet - 5
@@ -887,6 +1311,23 @@ class Pet(QWidget):
         config = ACTIVITIES.get(name)
         if not config:
             return
+        if config.get("edge") and self.state in ("idle", "walk", "act"):
+            plataforma = self.platform_under()
+            if plataforma is not None:
+                x1, x2, _y = plataforma
+                cx = self.center_x
+                self.edge_target = x2 if abs(x2 - cx) <= abs(cx - x1) else x1
+                self.pending_activity = name
+                self.activity = None
+                self.state = "edge"
+                self.state_timer = 300      # si no llega, lo hace donde este
+                self.vx = self.vy = 0.0
+                return
+        self.begin_activity(name, config)
+
+    def begin_activity(self, name: str, config: dict):
+        self.pending_activity = None
+        self.edge_target = None
         self.activity = name
         self.state = "act"
         self.vx = self.vy = 0.0
@@ -902,6 +1343,7 @@ class Pet(QWidget):
     def go_to_monitor(self, area):
         self.travel_target = area
         self.activity = None
+        self.pending_activity = self.edge_target = None
         self.state = "travel"
 
     # ---- raton -------------------------------------------------------------- #
@@ -911,6 +1353,7 @@ class Pet(QWidget):
             self.state = "drag"
             self.activity = None
             self.travel_target = None
+            self.pending_activity = self.edge_target = None
             self.vx = self.vy = 0.0
             self._drag_offset = event.position().toPoint()
             self._last_pos = event.globalPosition().toPoint()
@@ -957,11 +1400,13 @@ class Pet(QWidget):
         quitar.triggered.connect(lambda: self.set_costume(None))
         trajes.addAction(quitar)
         trajes.addSeparator()
-        for key, costume in COSTUMES.items():
-            act = QAction(costume["label"], self, checkable=True)
-            act.setChecked(self.costume == key)
-            act.triggered.connect(lambda _c=False, k=key: self.set_costume(k))
-            trajes.addAction(act)
+        for group_name, keys in COSTUME_GROUPS:
+            grupo = trajes.addMenu(group_name)
+            for key in keys:
+                act = QAction(COSTUMES[key]["label"], self, checkable=True)
+                act.setChecked(self.costume == key)
+                act.triggered.connect(lambda _c=False, k=key: self.set_costume(k))
+                grupo.addAction(act)
         trajes.addSeparator()
         azar = QAction("Uno al azar", self)
         azar.triggered.connect(
@@ -1031,6 +1476,7 @@ class Pet(QWidget):
         self.vx = self.vy = 0.0
         self.activity = None
         self.travel_target = None
+        self.pending_activity = self.edge_target = None
         self.state = "fall"
 
     # ---- dibujo -------------------------------------------------------------- #
@@ -1041,7 +1487,7 @@ class Pet(QWidget):
     def current_cells(self):
         """Lista de (columna, fila, caracter) ya colocados en el lienzo."""
         config = self.current_config()
-        stepping = self.state in ("walk", "travel") or bool(
+        stepping = self.state in ("walk", "travel", "edge") or bool(
             config and config["move"])
 
         body_kind = config["body"] if config else "normal"
@@ -1055,6 +1501,9 @@ class Pet(QWidget):
         legs_kind = config["legs"] if config else None
         if legs_kind == "walk" or (legs_kind is None and stepping):
             legs = LEGS["walk_a"] if (self.ticks // 8) % 2 == 0 else LEGS["walk_b"]
+        elif legs_kind == "dangle":
+            legs = (LEGS["dangle_a"] if (self.ticks // 24) % 2 == 0
+                    else LEGS["dangle_b"])
         elif legs_kind:
             legs = LEGS[legs_kind]
         elif self.state == "drag":
@@ -1125,7 +1574,8 @@ class Pet(QWidget):
         overlay_on = bool(config and config["overlay"]
                           and (self.ticks // (config["speed"] * 2)) % 2 == 0)
         return (self.state, self.activity, self.costume, self.facing,
-                (self.ticks // 8) % 2, prop_index, overlay_on)
+                (self.ticks // 8) % 2, (self.ticks // 24) % 2,
+                prop_index, overlay_on)
 
     def update_mask(self):
         """Solo los pixeles pintados capturan el raton."""

@@ -53,21 +53,55 @@ clics a lo que haya debajo.
 
 Comer palomitas, beber un refresco, tocar el ukelele, leer un libro, programar,
 jugar al futbol, conducir el cybertruck, tomar un cafe, hacer pesas, comer pizza,
-bailar y echarse una siesta.
+bailar, echarse una siesta, sentarse en el borde y pescar desde el borde.
 
 Cuando esta ociosa elige una sola, con probabilidad `ACTIVITY_CHANCE`.
 
+### Actividades de canto
+
+Las dos ultimas llevan `edge=True`. Si en ese momento esta de pie sobre el borde
+superior de una ventana, no se pone a ello donde este: pasa al estado `edge`,
+camina hasta el canto mas cercano de esa ventana, se gira mirando al vacio y ya
+alli se sienta con las piernas colgando y balanceandose. Pescando, el sedal cae
+por debajo de sus pies, el flotador baila y cada pocos segundos pica un pez.
+
+Se queda a `EDGE_MARGIN` pixeles del canto para que el suelo siga bajo su centro
+y no se caiga. Si esta en el suelo del escritorio y no sobre una ventana, o si
+tarda demasiado en llegar, empieza la actividad donde este. Cogerla con el raton
+o mandarla a otra pantalla cancela el viaje al canto.
+
+Por eso el lienzo mide 18 filas y no 12: las seis de abajo son el hueco para el
+sedal. Los pies ya no coinciden con el borde inferior de la ventana, estan en
+`PET_BOTTOM`, que es lo que usan la fisica y el aterrizaje.
+
 ## Trajes
 
-Espania (flamenca), Mexico (charro), Japon (kimono), China (tangzhuang),
+Son 32, repartidos en dos grupos dentro del menu.
+
+**Paises.** Espania (flamenca), Mexico (charro), Japon (kimono), China (tangzhuang),
 Corea (hanbok), India (sari), Escocia (kilt), Rusia (ushanka), Peru (poncho andino),
 Bolivia (cholita paceña), Marruecos (chilaba y fez), Baviera (lederhosen) y
 Egipto (nemes).
 
+**Personajes.** Arquetipos de anime y dibujos animados: ninja shinobi, samurai,
+espadachin errante, guerrero de gi, cazador de espiritus, onmyoji, chica magica,
+chica gato, idol, uniforme escolar, cocinero de ramen, piloto de mecha, piloto de
+caza espacial, kaiju, superheroe, robot de hojalata, mago, pirata y skater. Son
+disenios originales inspirados en los generos, no copias de personajes concretos:
+los de series como One Piece o Naruto estan protegidos por derechos de autor y
+marca.
+
 Cada traje tiene ropa y un accesorio propio: abanico, maracas, sombrilla, farolillo,
 tambor janggu, lampara diya, gaita, matrioska, zampoña, charango, tetera, jarra de
-cerveza y cayado. El traje se mantiene durante cualquier actividad; el accesorio se
-esconde mientras la actividad ya le ocupa las manos con su propio objeto.
+cerveza, cayado, shuriken, katana, espada envainada, esfera de energia, ofuda,
+abanico ritual, varita, ovillo de lana, microfono, mochila, bol de ramen, dron,
+nave, edificio, rayo, llave inglesa, baston con orbe, loro y monopatin. El traje se
+mantiene durante cualquier actividad; el accesorio se esconde mientras la actividad
+ya le ocupa las manos con su propio objeto.
+
+El reparto en submenus lo decide `COSTUME_GROUPS`: una lista de pares
+`(nombre del grupo, claves de COSTUMES)`. Si anades un traje nuevo, metelo tambien
+en un grupo o no saldra en el menu.
 
 ## Como esta organizado el archivo
 
@@ -78,6 +112,7 @@ esconde mientras la actividad ya le ocupa las manos con su propio objeto.
 | `PROPS` | Objetos animados de las actividades, en coordenadas del lienzo (21x12) |
 | `OVERLAYS` | Adornos sobre la cabeza: nota musical, burbujas, zzz |
 | `COSTUMES` | Trajes, en coordenadas del sprite |
+| `COSTUME_GROUPS` | Como se reparten los trajes en los submenus |
 | `ACTIVITIES` | Une prop, postura, piernas, velocidad, adorno y duracion |
 | Clase `Pet` | Fisica, deteccion de ventanas y monitores, dibujo y menu |
 
@@ -90,6 +125,7 @@ Constantes al principio del archivo:
 - `TICK_MS`: milisegundos por fotograma (16 son unos 60 fps).
 - `SCAN_MS`: cada cuanto vuelve a mirar que ventanas hay abiertas.
 - `ACTIVITY_CHANCE`, `TRAVEL_CHANCE`, `COSTUME_CHANCE`: como de inquieta es.
+- `EDGE_MARGIN`: cuanto se separa del canto al sentarse a pescar.
 
 ## Anadir un traje nuevo
 
@@ -135,6 +171,11 @@ Ejemplo minimo:
     ],
 },
 ```
+
+Y anade la clave a un grupo de `COSTUME_GROUPS`.
+
+Un apunte de color: el negro puro (`J`) desaparece sobre fondos de escritorio
+oscuros. Para telas oscuras usa mejor `Z`, el azul pizarra.
 
 ## Anadir una actividad
 
